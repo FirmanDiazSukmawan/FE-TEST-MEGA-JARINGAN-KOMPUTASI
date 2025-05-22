@@ -8,6 +8,7 @@ import axiosInstance from '@/utils/axios';
 import { useAuthStore } from '@/utils/zustand/auth';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 
 
 interface RawOrderData {
@@ -26,15 +27,15 @@ const HomePage = () => {
 const [currentPage, setCurrentPage] = useState(1);
 const [totalPages, setTotalPages] = useState(1);
 const itemsPerPage = 10;
-
-
-  const user = useAuthStore(state => state.user);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState<OrderData | null>(null);
-  const [newOrder, setNewOrder] = useState<Omit<OrderData, 'id'>>({
+const user = useAuthStore(state => state.user);
+const logout = useAuthStore(state=> state.logout)
+const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+const [currentOrder, setCurrentOrder] = useState<OrderData | null>(null);
+const [newOrder, setNewOrder] = useState<Omit<OrderData, 'id'>>({
     image: '', name: '', quantity: 0, weight: 0, description: ''
   });
+const route = useRouter()
 
 
  const handleCreateOrder = async () => {
@@ -128,8 +129,33 @@ const handleDeleteOrder = async (id: number) => {
   }
 };
 
+const handleLogout = async () => {
+  const confirmResult = await Swal.fire({
+    title: 'Are you sure?',
+    text: "You will Logged Out",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'No, cancel',
+  });
+
+  if (confirmResult.isConfirmed) {
+    try {
+      await logout()
+      Swal.fire('Logout', 'Logout Succesfully', 'success');
+      route.replace('/')
+      
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Logout Failed';
+      Swal.fire('Error!', message, 'error');
+    }
+  }
+};
+
   const handleEditOpen = (order: OrderData) => {
-    console.log(order)
+   
     setCurrentOrder(order);
     setIsEditModalOpen(true);
   };
@@ -193,13 +219,19 @@ useEffect(() => {
           Order Management
         </h1>
 
-        <div className="flex justify-center md:justify-start mb-6">
+        <div className="flex  justify-between mb-6">
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="bg-purple-600 hover:bg-purple-700 active:scale-95 transition-transform duration-150 ease-in-out text-white px-5 py-3 rounded-md flex items-center shadow-lg"
           >
             <FiPlus className="mr-2" />
             Create New Order
+          </button>
+           <button
+            onClick={handleLogout}
+            className="bg-gray-500 hover:bg-gray-900 active:scale-95 transition-transform duration-150 ease-in-out text-white px-5 py-3 rounded-md flex items-center shadow-lg"
+          >
+           Logout
           </button>
         </div>
 
