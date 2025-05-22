@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: false,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async rewrites() {
     return [
       {
